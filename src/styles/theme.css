@@ -1,0 +1,50 @@
+/* 主题 CSS 变量：亮色为默认值，暗色通过 .dark / [data-theme="dark"] 覆盖 */
+
+:root {
+  color-scheme: light;
+
+  --color-app-bg: #fafafa;
+  --color-panel: #ffffff;
+  --color-panel-muted: #fafafa;
+  --color-border: #e6e6e6;
+  --color-border-strong: #dddddd;
+
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-heading-border: #cccccc;
+
+  --color-link: #2d8cf0;
+  --color-link-hover: #73d13d;
+
+  --color-code-bg: rgba(0, 0, 0, 0.05);
+  --color-table-header-bg: #f2f2f2;
+  --color-blockquote-border: #d0d7de;
+
+  --color-pre-bg: #282c34;
+  --color-pre-text: #a9b7c6;
+}
+
+:root.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-app-bg: #171717;
+  --color-panel: #1e1e1e;
+  --color-panel-muted: #252525;
+  --color-border: #3e3e3e;
+  --color-border-strong: #4a4a4a;
+
+  --color-text-primary: #d4d4d4;
+  --color-text-secondary: #9ca3af;
+  --color-heading-border: #4b5563;
+
+  --color-link: #4da3ff;
+  --color-link-hover: #95de64;
+
+  --color-code-bg: rgba(255, 255, 255, 0.08);
+  --color-table-header-bg: #2a2a2a;
+  --color-blockquote-border: #4b5563;
+
+  --color-pre-bg: #1e1e1e;
+  --color-pre-text: #d4d4d4;
+}
