@@ -8,8 +8,9 @@
 <script setup>
 import { computed } from "vue";
 import { useEditorContentStore } from "../store/editor";
+import { storeToRefs } from "pinia";
 
-const { content } = useEditorContentStore();
+const { content } = storeToRefs(useEditorContentStore());
 
 const wordCount = computed(() => {
   if (!content.value) return 0;

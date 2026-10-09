@@ -1,54 +1,51 @@
 // 编辑器内容状态管理
-import { reactive, toRefs } from "vue";
+import { ref } from "vue";
+import { defineStore } from "pinia";
 
-const state = reactive({
-  content: "",
-  editorView: null,
-  previewView: null,
-  scrollWrapper: "editor",
-});
+export const useEditorContentStore = defineStore("editor", () => {
+  const content = ref("");
+  const editorView = ref(null);
+  const previewView = ref(null);
+  const scrollWrapper = ref("editor");
 
-export function useEditorContentStore() {
   const setContent = (value) => {
-    state.content = value;
+    content.value = value;
   };
 
   const setEditorView = (view) => {
-    state.editorView = view;
+    editorView.value = view;
   };
 
   const setPreviewView = (element) => {
-    state.previewView = element;
+    previewView.value = element;
   };
 
   const setScrollWrapper = (wrapper) => {
-    state.scrollWrapper = wrapper;
+    scrollWrapper.value = wrapper;
   };
 
   const syncScroll = (source) => {
-    const { editorView, previewView, scrollWrapper } = state;
-    
-    if (!editorView || !previewView || source !== scrollWrapper) return;
+    if (!editorView.value || !previewView.value || source !== scrollWrapper.value) return;
 
     if (source === "editor") {
-      const editorScroller = editorView.dom.querySelector(".cm-scroller");
-      if (editorScroller && previewView) {
+      const editorScroller = editorView.value.dom.querySelector(".cm-scroller");
+      if (editorScroller && previewView.value) {
         const editorScrollTop = editorScroller.scrollTop;
         const editorScrollHeight = editorScroller.scrollHeight - editorScroller.clientHeight;
-        const previewScrollHeight = previewView.scrollHeight - previewView.clientHeight;
-        
+        const previewScrollHeight = previewView.value.scrollHeight - previewView.value.clientHeight;
+
         if (editorScrollHeight > 0 && previewScrollHeight > 0) {
           const scrollPercent = editorScrollTop / editorScrollHeight;
-          previewView.scrollTop = scrollPercent * previewScrollHeight;
+          previewView.value.scrollTop = scrollPercent * previewScrollHeight;
         }
       }
     } else if (source === "preview") {
-      const editorScroller = editorView.dom.querySelector(".cm-scroller");
-      if (editorScroller && previewView) {
-        const previewScrollTop = previewView.scrollTop;
-        const previewScrollHeight = previewView.scrollHeight - previewView.clientHeight;
+      const editorScroller = editorView.value.dom.querySelector(".cm-scroller");
+      if (editorScroller && previewView.value) {
+        const previewScrollTop = previewView.value.scrollTop;
+        const previewScrollHeight = previewView.value.scrollHeight - previewView.value.clientHeight;
         const editorScrollHeight = editorScroller.scrollHeight - editorScroller.clientHeight;
-        
+
         if (editorScrollHeight > 0 && previewScrollHeight > 0) {
           const scrollPercent = previewScrollTop / previewScrollHeight;
           editorScroller.scrollTop = scrollPercent * editorScrollHeight;
@@ -58,11 +55,14 @@ export function useEditorContentStore() {
   };
 
   return {
-    ...toRefs(state),
+    content,
+    editorView,
+    previewView,
+    scrollWrapper,
     setContent,
     setEditorView,
     setPreviewView,
     setScrollWrapper,
     syncScroll,
   };
-}
+});

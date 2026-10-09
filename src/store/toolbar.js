@@ -1,23 +1,18 @@
 // 工具栏状态管理
-import { reactive, toRefs } from "vue";
+import { ref } from "vue";
+import { defineStore } from "pinia";
 
-const toolbarState = reactive({
-  isFullscreen: false,
-  showLayout: "split", // 'split', 'editor', 'preview'
-});
+export const useToolbarStore = defineStore("toolbar", () => {
+  const isFullscreen = ref(false);
+  const showLayout = ref("split"); // 'split', 'editor', 'preview'
 
-export function useToolbarStore() {
   const setFullscreen = (value) => {
-    toolbarState.isFullscreen = value;
+    isFullscreen.value = value;
   };
 
   const setShowLayout = (layout) => {
-    toolbarState.showLayout = layout;
+    showLayout.value = layout;
   };
 
-  return {
-    ...toRefs(toolbarState),
-    setFullscreen,
-    setShowLayout,
-  };
-}
+  return { isFullscreen, showLayout, setFullscreen, setShowLayout };
+});

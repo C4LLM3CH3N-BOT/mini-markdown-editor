@@ -12,10 +12,13 @@
 import { ref, computed, watch } from "vue";
 import { parseMarkdown, transformHtml } from "@mini-markdown-rc/ast-parser";
 import { useEditorContentStore } from "../store/editor";
+import { storeToRefs } from "pinia";
 
 const previewRef = ref(null);
 
-const { content, setPreviewView, setScrollWrapper, syncScroll } = useEditorContentStore();
+const editorStore = useEditorContentStore();
+const { content } = storeToRefs(editorStore);
+const { setPreviewView, setScrollWrapper, syncScroll } = editorStore;
 
 const throttle = (fn, delay) => {
   let last = 0;

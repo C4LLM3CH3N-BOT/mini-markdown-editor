@@ -19,8 +19,9 @@ import Editor from "./Editor.vue";
 import Preview from "./Preview.vue";
 import Status from "./Status.vue";
 import { useToolbarStore } from "../store/toolbar";
+import { storeToRefs } from "pinia";
 
-const { isFullscreen, showLayout } = useToolbarStore();
+const { isFullscreen, showLayout } = storeToRefs(useToolbarStore());
 </script>
 
 <style scoped>

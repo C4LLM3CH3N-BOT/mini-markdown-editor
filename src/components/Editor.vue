@@ -6,17 +6,74 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from "vue";
-import { EditorState } from "@codemirror/state";
+import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
-import { syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language";
+import { syntaxHighlighting, defaultHighlightStyle, HighlightStyle } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { useEditorContentStore } from "../store/editor";
+import { useThemeStore } from "../store/theme";
+import { storeToRefs } from "pinia";
 
 const editorRef = ref(null);
 const editorView = ref(null);
 
-const { content, setContent, setEditorView, syncScroll, setScrollWrapper } = useEditorContentStore();
+const editorStore = useEditorContentStore();
+const { setContent, setEditorView, syncScroll, setScrollWrapper } = editorStore;
+
+const themeStore = useThemeStore();
+const { isDark } = storeToRefs(themeStore);
+
+// 用 Compartment 隔离 CodeMirror 主题，便于运行时在明暗间切换
+const themeCompartment = new Compartment();
+
+// 暗色高亮：结构与 defaultHighlightStyle 完全对齐，只换配色，避免切换主题时排版跳动
+const darkHighlightStyle = HighlightStyle.define([
+  { tag: tags.meta, color: "#8a9199" },
+  { tag: tags.link, textDecoration: "underline" },
+  { tag: tags.heading, textDecoration: "underline", fontWeight: "bold" },
+  { tag: tags.emphasis, fontStyle: "italic" },
+  { tag: tags.strong, fontWeight: "bold" },
+  { tag: tags.strikethrough, textDecoration: "line-through" },
+  { tag: tags.keyword, color: "#c678dd" },
+  { tag: [tags.atom, tags.bool, tags.url, tags.contentSeparator, tags.labelName], color: "#4da3ff" },
+  { tag: [tags.literal, tags.inserted], color: "#95de64" },
+  { tag: [tags.string, tags.deleted], color: "#e06c75" },
+  { tag: [tags.regexp, tags.escape, tags.special(tags.string)], color: "#d19a66" },
+  { tag: tags.definition(tags.variableName), color: "#61afef" },
+  { tag: tags.local(tags.variableName), color: "#56b6c2" },
+  { tag: [tags.typeName, tags.namespace], color: "#98c379" },
+  { tag: tags.className, color: "#e5c07b" },
+  { tag: tags.definition(tags.propertyName), color: "#61afef" },
+  { tag: tags.comment, color: "#7f848e" },
+  { tag: tags.invalid, color: "#e06c75" },
+]);
+
+// 编辑器基础配色：背景/文字/光标/行号栏；dark 标志交给 CodeMirror 决定选区、当前行等默认色
+const editorBaseTheme = (dark) =>
+  EditorView.theme(
+    {
+      "&": {
+        height: "100%",
+        backgroundColor: dark ? "#1e1e1e" : "#ffffff",
+        color: dark ? "#d4d4d4" : "#333333",
+      },
+      ".cm-scroller": { overflow: "auto" },
+      ".cm-gutters": {
+        backgroundColor: dark ? "#252525" : "#fafafa",
+        color: dark ? "#6b7280" : "#999999",
+        border: "none",
+      },
+      "&.cm-focused .cm-cursor": {
+        borderLeftColor: dark ? "#d4d4d4" : "#333333",
+      },
+    },
+    { dark }
+  );
+
+const lightTheme = [editorBaseTheme(false), syntaxHighlighting(defaultHighlightStyle)];
+const darkTheme = [editorBaseTheme(true), syntaxHighlighting(darkHighlightStyle)];
 
 const loadContent = () => {
   try {
@@ -65,7 +122,7 @@ onMounted(() => {
       highlightActiveLine(),
       history(),
       markdown(),
-      syntaxHighlighting(defaultHighlightStyle),
+      themeCompartment.of(isDark.value ? darkTheme : lightTheme),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
@@ -73,10 +130,6 @@ onMounted(() => {
           setContent(newContent);
           debouncedSave(newContent);
         }
-      }),
-      EditorView.theme({
-        "&": { height: "100%" },
-        ".cm-scroller": { overflow: "auto" },
       }),
     ],
   });
@@ -96,6 +149,12 @@ onMounted(() => {
       setScrollWrapper("editor");
     });
   }
+});
+
+watch(isDark, (dark) => {
+  editorView.value?.dispatch({
+    effects: themeCompartment.reconfigure(dark ? darkTheme : lightTheme),
+  });
 });
 
 onUnmounted(() => {

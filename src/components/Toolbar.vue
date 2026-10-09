@@ -62,8 +62,10 @@ import { useEditorContentStore } from "../store/editor";
 import { useToolbarStore } from "../store/toolbar";
 import { useThemeStore } from "../store/theme";
 
-const { editorView } = useEditorContentStore();
-const { isFullscreen, setFullscreen, showLayout, setShowLayout } = useToolbarStore();
+const { editorView } = storeToRefs(useEditorContentStore());
+const toolbarStore = useToolbarStore();
+const { isFullscreen, showLayout } = storeToRefs(toolbarStore);
+const { setFullscreen, setShowLayout } = toolbarStore;
 const themeStore = useThemeStore();
 const { isDark } = storeToRefs(themeStore);
 
